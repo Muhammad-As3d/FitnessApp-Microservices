@@ -1,11 +1,38 @@
 services:
-  authenticationservice:
+   #sqlServer ==============
+   sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment: 
+    - SA_PASSWORD=FitnessApp@123
+    - ACCEPT_EULA=Y
+    ports:
+    - "2026:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - microservices-network
+
+   #rabbitMQ ===============
+   rabbitmq:
+    image: rabbitmq:management
+    ports:
+    - "15672:15672"
+    - "5672:5672"
+
+    # authenticationservice ============
+   authenticationservice:
     image: ${DOCKER_REGISTRY-}authenticationservice
     build:
       context: .
       dockerfile: src/AuthenticationService/Dockerfile
-  workoutservice:
+    depends_on:
+    - sqlserver
+
+    # workoutservice ===============
+   workoutservice:
     image: ${DOCKER_REGISTRY-}workoutservice
     build:
       context: .
       dockerfile: src/WorkoutService/Dockerfile
+    depends_on:
+    - sqlserver
